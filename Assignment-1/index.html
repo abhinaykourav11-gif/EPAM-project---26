@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>NeoBank — Customer Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root{
+    --ink:#0F2A1D;
+    --paper:#F6F3EA;
+    --vault:#123524;
+    --vault-2:#1B4A32;
+    --gold:#C9A34E;
+    --gold-soft:#E4D2A0;
+    --debit:#B5502B;
+    --credit:#3E6B4C;
+    --line: rgba(15,42,29,0.14);
+    --mono: "Courier New", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family: Georgia, "Times New Roman", serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .band{
+    background:
+      linear-gradient(180deg, var(--vault) 0%, var(--vault-2) 100%);
+    color:var(--gold-soft);
+    padding:28px 24px 60px;
+    position:relative;
+    overflow:hidden;
+  }
+  .band::after{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      repeating-linear-gradient(135deg, rgba(201,163,78,0.06) 0 2px, transparent 2px 26px);
+    pointer-events:none;
+  }
+  .brand{
+    display:flex; align-items:center; justify-content:space-between;
+    max-width:960px; margin:0 auto;
+    position:relative; z-index:1;
+  }
+  .brand-name{
+    display:flex; align-items:center; gap:12px;
+    font-family: "Trebuchet MS", sans-serif;
+    letter-spacing:0.14em;
+    font-size:15px;
+    text-transform:uppercase;
+    color:var(--gold);
+  }
+  .brand-name .mark{
+    width:34px;height:34px;border-radius:50%;
+    border:1.5px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-family:Georgia, serif; font-style:italic; font-size:18px;
+    color:var(--gold-soft);
+  }
+  .brand-meta{ font-size:12px; letter-spacing:0.08em; color:rgba(228,210,160,0.65); font-family:"Trebuchet MS", sans-serif;}
+  .hero{
+    max-width:960px; margin:36px auto 0; position:relative; z-index:1;
+  }
+  .eyebrow{
+    font-family:"Trebuchet MS", sans-serif;
+    font-size:11px; letter-spacing:0.2em; text-transform:uppercase;
+    color:rgba(228,210,160,0.7);
+    margin:0 0 10px;
+  }
+  #welcomeMsg{
+    font-size:clamp(26px,4vw,38px);
+    margin:0 0 6px;
+    color:var(--paper);
+    font-weight:400;
+  }
+  .sub{ margin:0; color:rgba(246,243,234,0.65); font-size:14.5px; max-width:520px;}
+
+  .balance-card{
+    max-width:960px; margin:-38px auto 0; position:relative; z-index:2;
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:4px;
+    box-shadow:0 18px 40px rgba(15,42,29,0.18);
+    padding:26px 30px;
+    display:flex; flex-wrap:wrap; gap:24px; justify-content:space-between; align-items:flex-end;
+  }
+  .bal-label{ font-family:"Trebuchet MS", sans-serif; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:#6b7a70; margin:0 0 8px;}
+  .bal-amount{ font-family:var(--mono); font-size:clamp(30px,5vw,42px); color:var(--vault); margin:0; }
+  .bal-amount .cents{ font-size:0.5em; color:#8a9a8f; }
+  .acct-id{ font-family:var(--mono); font-size:13px; color:#8a9a8f; margin-top:4px;}
+  .actions{ display:flex; gap:12px; flex-wrap:wrap;}
+  button{
+    font-family:"Trebuchet MS", sans-serif;
+    font-size:13.5px; letter-spacing:0.04em;
+    padding:13px 22px;
+    border-radius:2px;
+    cursor:pointer;
+    border:1.5px solid transparent;
+    transition: transform .12s ease, box-shadow .12s ease, background .15s ease;
+  }
+  button:active{ transform: translateY(1px); }
+  .btn-deposit{ background:var(--credit); color:#F6F3EA; }
+  .btn-deposit:hover{ background:#335a41; box-shadow:0 6px 16px rgba(62,107,76,0.35);}
+  .btn-withdraw{ background:transparent; color:var(--debit); border-color:var(--debit); }
+  .btn-withdraw:hover{ background:rgba(181,80,43,0.08); }
+
+  main{ max-width:960px; margin:0 auto; padding:44px 24px 70px; }
+
+  .panel{ margin-bottom:44px; }
+  .panel-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    border-bottom:1.5px solid var(--ink); padding-bottom:10px; margin-bottom:18px;
+  }
+  .panel-head h2{
+    font-family:"Trebuchet MS", sans-serif; font-weight:600;
+    font-size:13px; letter-spacing:0.14em; text-transform:uppercase; margin:0;
+  }
+  .panel-head .count{ font-family:var(--mono); font-size:12px; color:#8a9a8f; }
+
+  #txList{ list-style:none; margin:0; padding:0; }
+  #txList li{
+    display:grid; grid-template-columns:90px 1fr auto; gap:14px; align-items:center;
+    padding:13px 4px; border-bottom:1px dashed var(--line);
+    font-size:14px;
+  }
+  #txList li:last-child{ border-bottom:none; }
+  .tx-date{ font-family:var(--mono); font-size:11.5px; color:#8a9a8f; }
+  .tx-desc{ color:var(--ink); }
+  .tx-desc .tag{
+    display:inline-block; font-family:"Trebuchet MS", sans-serif; font-size:9.5px;
+    letter-spacing:0.08em; text-transform:uppercase; padding:2px 7px; border-radius:2px;
+    margin-right:8px; vertical-align:middle;
+  }
+  .tag.credit{ background:rgba(62,107,76,0.12); color:var(--credit); }
+  .tag.debit{ background:rgba(181,80,43,0.12); color:var(--debit); }
+  .tx-amt{ font-family:var(--mono); font-size:14.5px; text-align:right; }
+  .tx-amt.credit{ color:var(--credit); }
+  .tx-amt.debit{ color:var(--debit); }
+  .empty-note{ color:#8a9a8f; font-size:13.5px; padding:14px 4px; font-style:italic;}
+
+  .passbook{
+    background:var(--vault);
+    color:var(--gold-soft);
+    border-radius:4px;
+    padding:0;
+    overflow:hidden;
+    box-shadow:0 14px 30px rgba(15,42,29,0.2);
+  }
+  .passbook-strip{
+    background:var(--gold); color:var(--vault);
+    font-family:"Trebuchet MS", sans-serif; font-size:11px; letter-spacing:0.16em;
+    text-transform:uppercase; padding:9px 20px; font-weight:700;
+  }
+  .passbook-inner{ padding:22px 24px 26px; }
+  .passbook-row{
+    display:grid; grid-template-columns:1fr auto auto; gap:10px;
+    font-family:var(--mono); font-size:12.5px;
+    padding:9px 0; border-bottom:1px solid rgba(228,210,160,0.14);
+  }
+  .passbook-row.head{ color:rgba(228,210,160,0.55); font-size:10.5px; letter-spacing:0.08em; text-transform:uppercase; border-bottom:1px solid rgba(228,210,160,0.3); }
+  .passbook-row .bal{ color:var(--gold-soft); text-align:right; min-width:90px; }
+  .passbook-row .amt{ text-align:right; min-width:80px; }
+  .passbook-row .amt.credit{ color:#9CC7A9; }
+  .passbook-row .amt.debit{ color:#E3A17E; }
+
+  footer{
+    text-align:center; padding:26px; font-family:"Trebuchet MS", sans-serif;
+    font-size:11px; letter-spacing:0.1em; color:#8a9a8f; text-transform:uppercase;
+  }
+
+  dialog{
+    border:none; border-radius:4px; padding:0; width:min(360px, 90vw);
+    box-shadow:0 20px 50px rgba(15,42,29,0.35);
+  }
+  dialog::backdrop{ background:rgba(15,42,29,0.55); }
+  .dlg-head{ background:var(--vault); color:var(--gold-soft); padding:16px 22px; font-family:"Trebuchet MS", sans-serif; font-size:12px; letter-spacing:0.12em; text-transform:uppercase;}
+  .dlg-body{ padding:22px; background:var(--paper); }
+  .dlg-body label{ font-family:"Trebuchet MS", sans-serif; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:#6b7a70; display:block; margin-bottom:8px;}
+  .dlg-body input{
+    width:100%; font-family:var(--mono); font-size:18px; padding:10px 12px;
+    border:1.5px solid var(--line); border-radius:2px; margin-bottom:6px; background:#fff; color:var(--ink);
+  }
+  .dlg-err{ color:var(--debit); font-size:12px; min-height:16px; margin-bottom:10px; font-family:"Trebuchet MS", sans-serif;}
+  .dlg-actions{ display:flex; gap:10px; justify-content:flex-end; }
+  .dlg-actions button{ padding:10px 18px; }
+  .btn-cancel{ background:transparent; color:#6b7a70; border-color:var(--line); }
+
+  @media (max-width: 560px){
+    .balance-card{ flex-direction:column; align-items:flex-start; }
+    .actions{ width:100%; }
+    .actions button{ flex:1; }
+    #txList li{ grid-template-columns:70px 1fr; }
+    .tx-amt{ grid-column:2; text-align:left; margin-top:2px;}
+    .passbook-row{ grid-template-columns:1fr auto; }
+    .passbook-row .bal{ grid-column:1 / -1; text-align:left; margin-top:2px; color:rgba(228,210,160,0.5);}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="band">
+  <div class="brand">
+    <div class="brand-name"><span class="mark">N</span> NeoBank</div>
+    <div class="brand-meta">Customer Portal</div>
+  </div>
+  <div class="hero">
+    <p class="eyebrow">Account Overview</p>
+    <h1 id="welcomeMsg">Welcome back.</h1>
+    <p class="sub">Manage deposits, withdrawals, and review your full transaction passbook below.</p>
+  </div>
+</div>
+
+<div class="balance-card">
+  <div>
+    <p class="bal-label">Available Balance</p>
+    <p class="bal-amount" id="balanceDisplay">₹0<span class="cents">.00</span></p>
+    <p class="acct-id" id="acctId">A/C · NB-0000-0000</p>
+  </div>
+  <div class="actions">
+    <button class="btn-deposit" onclick="openDialog('deposit')">Deposit Funds</button>
+    <button class="btn-withdraw" onclick="openDialog('withdraw')">Withdraw Funds</button>
+  </div>
+</div>
+
+<main>
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Payment History</h2>
+      <span class="count" id="txCount">0 entries</span>
+    </div>
+    <ul id="txList"></ul>
+  </section>
+
+  <section class="panel">
+    <div class="passbook">
+      <div class="passbook-strip">Passbook — NeoBank</div>
+      <div class="passbook-inner">
+        <div class="passbook-row head">
+          <div>Particulars</div>
+          <div class="amt">Amount</div>
+          <div class="bal">Balance</div>
+        </div>
+        <div id="passbookRows"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>NeoBank &copy; 2026 · This is a demo customer portal</footer>
+
+<dialog id="txDialog">
+  <div class="dlg-head" id="dlgTitle">Deposit Funds</div>
+  <div class="dlg-body">
+    <label for="amtInput">Amount (₹)</label>
+    <input type="number" id="amtInput" min="1" step="0.01" placeholder="0.00" />
+    <div class="dlg-err" id="dlgErr"></div>
+    <div class="dlg-actions">
+      <button class="btn-cancel" onclick="closeDialog()">Cancel</button>
+      <button id="dlgConfirm" class="btn-deposit" onclick="confirmTx()">Confirm</button>
+    </div>
+  </div>
+</dialog>
+
+<script type="text/javascript">
+  // ---- state ----
+  var customerName = "Abhinay Kourav";
+  var customerId = "482913";
+  var balance = 24500.00;
+  var transactions = [
+    { type: "credit", desc: "Opening balance", date: "2026-07-01", amount: 24500.00, balanceAfter: 24500.00 }
+  ];
+  var pendingMode = null;
+
+  function pad(n){ return n < 10 ? "0" + n : "" + n; }
+
+  function todayStr(){
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+
+  function formatMoney(n){
+    var fixed = n.toFixed(2).split(".");
+    var whole = fixed[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return "₹" + whole + "." + fixed[1];
+  }
+
+  function sayHello(){
+    document.getElementById("welcomeMsg").innerHTML = "Welcome back, " + customerName + "!";
+  }
+
+  function renderBalance(){
+    var parts = balance.toFixed(2).split(".");
+    var whole = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    document.getElementById("balanceDisplay").innerHTML =
+      "₹" + whole + '<span class="cents">.' + parts[1] + "</span>";
+    document.getElementById("acctId").innerHTML = "A/C · NB-" + customerId + "-0" + transactions.length;
+  }
+
+  function renderTransactions(){
+    var list = document.getElementById("txList");
+    var pb = document.getElementById("passbookRows");
+    list.innerHTML = "";
+    pb.innerHTML = "";
+    document.getElementById("txCount").innerHTML = transactions.length + " entries";
+
+    if (transactions.length === 0){
+      list.innerHTML = '<li class="empty-note">No transactions yet.</li>';
+      return;
+    }
+
+    // newest first for history list
+    for (var i = transactions.length - 1; i >= 0; i--){
+      var t = transactions[i];
+      var li = document.createElement("li");
+      var sign = t.type === "credit" ? "+" : "−";
+      li.innerHTML =
+        '<span class="tx-date">' + t.date + '</span>' +
+        '<span class="tx-desc"><span class="tag ' + t.type + '">' + t.type + '</span>' + t.desc + '</span>' +
+        '<span class="tx-amt ' + t.type + '">' + sign + formatMoney(t.amount) + '</span>';
+      list.appendChild(li);
+    }
+
+    // chronological for passbook
+    for (var j = 0; j < transactions.length; j++){
+      var p = transactions[j];
+      var row = document.createElement("div");
+      row.className = "passbook-row";
+      var psign = p.type === "credit" ? "+" : "−";
+      row.innerHTML =
+        '<div>' + p.date + ' — ' + p.desc + '</div>' +
+        '<div class="amt ' + p.type + '">' + psign + formatMoney(p.amount) + '</div>' +
+        '<div class="bal">' + formatMoney(p.balanceAfter) + '</div>';
+      pb.appendChild(row);
+    }
+  }
+
+  function openDialog(mode){
+    pendingMode = mode;
+    var dlg = document.getElementById("txDialog");
+    var title = document.getElementById("dlgTitle");
+    var confirmBtn = document.getElementById("dlgConfirm");
+    document.getElementById("amtInput").value = "";
+    document.getElementById("dlgErr").innerHTML = "";
+
+    if (mode === "deposit"){
+      title.innerHTML = "Deposit Funds";
+      confirmBtn.className = "btn-deposit";
+      confirmBtn.innerHTML = "Deposit";
+    } else {
+      title.innerHTML = "Withdraw Funds";
+      confirmBtn.className = "btn-withdraw";
+      confirmBtn.innerHTML = "Withdraw";
+    }
+    dlg.showModal();
+  }
+
+  function closeDialog(){
+    document.getElementById("txDialog").close();
+  }
+
+  function confirmTx(){
+    var errBox = document.getElementById("dlgErr");
+    var raw = document.getElementById("amtInput").value;
+    var amount = parseFloat(raw);
+
+    if (!raw || isNaN(amount) || amount <= 0){
+      errBox.innerHTML = "Enter a valid amount greater than 0.";
+      return;
+    }
+
+    if (pendingMode === "withdraw" && amount > balance){
+      errBox.innerHTML = "Insufficient balance for this withdrawal.";
+      return;
+    }
+
+    if (pendingMode === "deposit"){
+      balance += amount;
+      transactions.push({ type: "credit", desc: "Cash deposit", date: todayStr(), amount: amount, balanceAfter: balance });
+    } else {
+      balance -= amount;
+      transactions.push({ type: "debit", desc: "Cash withdrawal", date: todayStr(), amount: amount, balanceAfter: balance });
+    }
+
+    renderBalance();
+    renderTransactions();
+    closeDialog();
+  }
+
+  // ---- init ----
+  sayHello();
+  renderBalance();
+  renderTransactions();
+</script>
+
+</body>
+</html>
